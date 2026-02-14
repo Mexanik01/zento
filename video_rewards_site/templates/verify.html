@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>SMS-подтверждение</h2>
+  <p>Введите 6-значный код из SMS.</p>
+  <form method="post">
+    <label>Код</label>
+    <input type="text" name="code" maxlength="6" required>
+    <button class="btn" type="submit">Подтвердить</button>
+  </form>
+</section>
+{% endblock %}

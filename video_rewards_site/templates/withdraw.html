@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card withdraw-card">
+  <h2>Вывод средств</h2>
+  <p><strong>Доступный баланс:</strong> {{ '%.2f'|format(user['balance']) }} сомони</p>
+  <p><strong>Минимальная сумма:</strong> больше {{ '%.2f'|format(min_withdrawal) }} сомони</p>
+  <form method="post">
+    <label>Сумма (сомони)</label>
+    <input type="number" name="amount" step="0.01" min="20.01" required>
+
+    <label>Банк Таджикистана</label>
+    <select name="bank_name" required>
+      <option value="" selected disabled>Выберите банк</option>
+      {% for bank in tajik_banks %}
+        <option value="{{ bank }}">{{ bank }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Реквизиты (карта/кошелек/телефон)</label>
+    <input type="text" name="payout_details" required>
+
+    <button class="btn" type="submit">Создать заявку на вывод</button>
+  </form>
+</section>
+
+<section class="card history-card">
+  <h3>История выводов</h3>
+  {% if requests %}
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          <th>Сумма</th>
+          <th>Реквизиты</th>
+          <th>Статус</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in requests %}
+          <tr>
+            <td>{{ item['created_at'][:19].replace('T', ' ') }}</td>
+            <td>{{ '%.2f'|format(item['amount']) }}</td>
+            <td>{{ item['payout_details'] }}</td>
+            <td>
+              {% if item['status'] == 'pending' %}
+                В обработке
+              {% elif item['status'] == 'approved' %}
+                Одобрено
+              {% elif item['status'] == 'rejected' %}
+                Отклонено
+              {% else %}
+                {{ item['status'] }}
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>Заявок на вывод пока нет.</p>
+  {% endif %}
+</section>
+{% endblock %}

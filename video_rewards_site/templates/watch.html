@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>{{ video['title'] }}</h2>
+  <p><strong>Рекламодатель:</strong> {{ video['advertiser_name'] }}</p>
+  <p>Награда {{ '%.2f'|format(reward) }} сомони станет доступна после полного просмотра.</p>
+
+  <video id="reward-video" controls autoplay playsinline preload="metadata" width="100%" class="video-player">
+    <source src="{{ video['video_url'] }}">
+    Ваш браузер не поддерживает видео.
+  </video>
+
+  <p id="timer">Загрузка длительности видео...</p>
+  <p id="watch-status" class="hint"></p>
+
+  <form method="post" action="{{ url_for('claim', video_id=video['id']) }}">
+    <button id="claim-btn" class="btn" type="submit" disabled>Получить награду</button>
+    <a class="btn ghost" href="{{ url_for('dashboard') }}">Назад</a>
+  </form>
+</section>
+
+<script>
+  (() => {
+    const videoEl = document.getElementById('reward-video');
+    const timerEl = document.getElementById('timer');
+    const statusEl = document.getElementById('watch-status');
+    const claimBtn = document.getElementById('claim-btn');
+
+    let totalSeconds = 0;
+    let watchedSeconds = 0;
+    let lastTickAt = null;
+    let maxReachedTime = 0;
+    let playbackReady = false;
+
+    const formatSeconds = (value) => {
+      const safe = Math.max(0, Math.ceil(value));
+      const minutes = Math.floor(safe / 60);
+      const seconds = safe % 60;
+      return minutes > 0 ? `${minutes}:${String(seconds).padStart(2, '0')}` : `${seconds} сек`;
+    };
+
+    const updateTimer = () => {
+      if (!playbackReady) {
+        timerEl.textContent = 'Загрузка длительности видео...';
+        return;
+      }
+
+      const remaining = Math.max(0, totalSeconds - watchedSeconds);
+      if (remaining <= 0) {
+        timerEl.textContent = 'Готово. Теперь можно получить награду.';
+        claimBtn.disabled = false;
+        return;
+      }
+      timerEl.textContent = `Осталось смотреть: ${formatSeconds(remaining)}`;
+    };
+
+    const startTick = () => {
+      if (!playbackReady || !claimBtn.disabled) {
+        return;
+      }
+      if (videoEl.paused || videoEl.ended || videoEl.seeking || videoEl.readyState < 2) {
+        return;
+      }
+      lastTickAt = performance.now();
+    };
+
+    const stopTick = () => {
+      lastTickAt = null;
+    };
+
+    setInterval(() => {
+      if (!playbackReady || lastTickAt === null || !claimBtn.disabled) {
+        return;
+      }
+      if (videoEl.paused || videoEl.seeking || videoEl.readyState < 2) {
+        stopTick();
+        return;
+      }
+
+      const now = performance.now();
+      const delta = (now - lastTickAt) / 1000;
+      lastTickAt = now;
+      watchedSeconds = Math.min(totalSeconds, watchedSeconds + delta);
+      updateTimer();
+    }, 250);
+
+    videoEl.addEventListener('loadedmetadata', () => {
+      if (!Number.isFinite(videoEl.duration) || videoEl.duration <= 0) {
+        timerEl.textContent = 'Не удалось определить длительность видео.';
+        return;
+      }
+
+      totalSeconds = Math.ceil(videoEl.duration);
+      watchedSeconds = 0;
+      maxReachedTime = 0;
+      playbackReady = true;
+      statusEl.textContent = '';
+      updateTimer();
+      startTick();
+    });
+
+    videoEl.addEventListener('play', () => {
+      statusEl.textContent = '';
+      startTick();
+    });
+
+    videoEl.addEventListener('playing', () => {
+      statusEl.textContent = '';
+      startTick();
+    });
+
+    videoEl.addEventListener('pause', () => {
+      if (claimBtn.disabled) {
+        statusEl.textContent = 'Видео на паузе. Таймер остановлен.';
+      }
+      stopTick();
+    });
+
+    videoEl.addEventListener('waiting', () => {
+      if (claimBtn.disabled) {
+        statusEl.textContent = 'Проблема сети. Таймер остановлен до восстановления.';
+      }
+      stopTick();
+    });
+
+    videoEl.addEventListener('stalled', () => {
+      if (claimBtn.disabled) {
+        statusEl.textContent = 'Видео не загружается. Таймер остановлен.';
+      }
+      stopTick();
+    });
+
+    videoEl.addEventListener('error', () => {
+      statusEl.textContent = 'Ошибка загрузки видео. Таймер остановлен.';
+      stopTick();
+    });
+
+    videoEl.addEventListener('timeupdate', () => {
+      maxReachedTime = Math.max(maxReachedTime, videoEl.currentTime || 0);
+    });
+
+    videoEl.addEventListener('seeking', () => {
+      if (videoEl.currentTime > maxReachedTime + 1) {
+        videoEl.currentTime = maxReachedTime;
+      }
+    });
+
+    videoEl.addEventListener('ratechange', () => {
+      if (videoEl.playbackRate !== 1) {
+        videoEl.playbackRate = 1;
+      }
+    });
+
+    videoEl.addEventListener('ended', () => {
+      watchedSeconds = totalSeconds;
+      statusEl.textContent = '';
+      stopTick();
+      updateTimer();
+    });
+
+    updateTimer();
+  })();
+</script>
+{% endblock %}

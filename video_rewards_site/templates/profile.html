@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card profile-card">
+  <div class="profile-head">
+    <img src="{{ avatar_url }}" alt="Фото профиля" class="profile-avatar">
+    <div>
+      <h2>Профиль: {{ user['username'] }}</h2>
+      <p><strong>Степень:</strong> {{ profile_level }}</p>
+      <p><strong>Телефон:</strong> {{ user['phone'] }}</p>
+      <p><strong>Просмотрено видео:</strong> {{ total_views }}</p>
+      <p><strong>Приглашено пользователей:</strong> {{ invited_count }}</p>
+    </div>
+  </div>
+</section>
+
+<section class="card profile-settings">
+  <h3>Изменить номер телефона</h3>
+  <form method="post">
+    <input type="hidden" name="action" value="update_phone">
+    <label>Новый номер телефона</label>
+    <input type="text" name="phone" value="{{ user['phone'] }}" required>
+    <button class="btn" type="submit">Изменить номер телефона</button>
+  </form>
+</section>
+
+<section class="card profile-settings">
+  <h3>Изменить пароль</h3>
+  <form method="post">
+    <input type="hidden" name="action" value="update_password">
+    <label>Текущий пароль</label>
+    <input type="password" name="current_password" required>
+    <label>Новый пароль</label>
+    <input type="password" name="new_password" required>
+    <label>Повторите новый пароль</label>
+    <input type="password" name="confirm_password" required>
+    <button class="btn" type="submit">Изменить пароль</button>
+  </form>
+</section>
+
+<section class="card profile-settings">
+  <h3>Выход</h3>
+  <a class="btn danger" href="{{ url_for('logout') }}">Выйти</a>
+</section>
+{% endblock %}
