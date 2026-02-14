@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>Добро пожаловать</h2>
+  <p>Смотрите рекламные видео и получайте сомони за каждый просмотр.</p>
+  <div class="referral-actions">
+    <a class="btn" href="{{ url_for('login') }}">Войти</a>
+    <a class="btn ghost" href="{{ url_for('register') }}">Регистрация</a>
+  </div>
+</section>
+{% endblock %}
