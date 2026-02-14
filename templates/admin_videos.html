@@ -1,0 +1,81 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Добавить видео на день</h2>
+  <p><strong>Дата:</strong> {{ selected_day }} | <strong>Заполнено:</strong> {{ videos_count }} / {{ daily_limit }}</p>
+  <form class="admin-search" method="get">
+    <label>Выбрать день</label>
+    <div class="search-row">
+      <input type="date" name="day" value="{{ selected_day }}" required>
+      <button class="btn" type="submit">Открыть</button>
+      <a class="btn ghost" href="{{ url_for('admin_videos') }}">Сегодня</a>
+    </div>
+  </form>
+</section>
+
+<section class="card history-card">
+  <h3>Новое видео</h3>
+  <form method="post" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="add_video">
+    <input type="hidden" name="day" value="{{ selected_day }}">
+    <label>Название видео</label>
+    <input type="text" name="title" placeholder="Например: Рекламное видео 1">
+
+    <label>Имя рекламодателя</label>
+    <input type="text" name="advertiser_name" required>
+
+    <label>Ссылка на видео (необязательно)</label>
+    <input type="url" name="video_url" placeholder="https://...">
+
+    <label>Или загрузить видео (mp4, webm, ogg)</label>
+    <input type="file" name="video_file" accept=".mp4,.webm,.ogg,video/mp4,video/webm,video/ogg">
+    <p class="hint">Можно указать ссылку или загрузить файл (до {{ max_video_upload_mb }} МБ). Если выбрано и то, и другое — будет использован файл.</p>
+
+    <button class="btn" type="submit" {% if videos_count >= daily_limit %}disabled{% endif %}>Добавить видео</button>
+    {% if videos_count >= daily_limit %}
+      <p class="hint">Лимит на этот день заполнен.</p>
+    {% endif %}
+  </form>
+</section>
+
+<section class="card history-card">
+  <h3>Видео на {{ selected_day }}</h3>
+  {% if videos %}
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Название</th>
+            <th>Рекламодатель</th>
+            <th>Ссылка</th>
+            <th>Кто добавил</th>
+            <th>Удалить</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in videos %}
+            <tr>
+              <td>{{ item['id'] }}</td>
+              <td>{{ item['title'] }}</td>
+              <td>{{ item['advertiser_name'] }}</td>
+              <td><a href="{{ item['video_url'] }}" target="_blank" rel="noopener">Открыть</a></td>
+              <td>{{ item['created_by_username'] or 'Система' }}</td>
+              <td>
+                <form method="post" class="admin-inline-form" onsubmit="return confirm('Удалить это видео?');">
+                  <input type="hidden" name="action" value="delete_video">
+                  <input type="hidden" name="day" value="{{ selected_day }}">
+                  <input type="hidden" name="video_id" value="{{ item['id'] }}">
+                  <button class="btn small danger" type="submit">Удалить</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>На этот день видео пока не добавлены.</p>
+  {% endif %}
+</section>
+{% endblock %}

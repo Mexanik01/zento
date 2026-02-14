@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card referral-card">
+  <h2>Реферальное меню</h2>
+  <p><strong>Ваш реферальный код:</strong> {{ user['referral_code'] }}</p>
+  <p>
+    За каждого приглашенного пользователя награда за видео растет на
+    +{{ '%.2f'|format(referral_bonus_per_signup) }} сомони.
+  </p>
+  <p><strong>Текущий реферальный бонус:</strong> +{{ '%.2f'|format(user['referral_bonus']) }} сомони</p>
+  <div class="referral-row">
+    <input id="ref-link" type="text" value="{{ referral_link }}" readonly>
+    <div class="referral-actions">
+      <button class="btn" type="button" id="copy-ref-btn">Копировать ссылку</button>
+      <button class="btn ghost" type="button" id="share-ref-btn">Поделиться</button>
+    </div>
+  </div>
+</section>
+
+<section class="card history-card">
+  <h3>Кто добавлен по вашей ссылке</h3>
+  {% if invited_users %}
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Пользователь</th>
+            <th>Номер телефона</th>
+            <th>Дата регистрации</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in invited_users %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ item['username'] }}</td>
+              <td>{{ item['phone'] }}</td>
+              <td>{{ item['created_at'][:19].replace('T', ' ') }}</td>
+              <td>{% if item['is_verified'] %}Подтвержден{% else %}Не подтвержден{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Пока никто не зарегистрировался по вашей ссылке.</p>
+  {% endif %}
+</section>
+
+<script>
+  const refBtn = document.getElementById('copy-ref-btn');
+  const shareBtn = document.getElementById('share-ref-btn');
+  if (refBtn) {
+    refBtn.addEventListener('click', async () => {
+      const field = document.getElementById('ref-link');
+      const value = field.value;
+      try {
+        await navigator.clipboard.writeText(value);
+      } catch (_err) {
+        field.select();
+        document.execCommand('copy');
+      }
+      refBtn.textContent = 'Ссылка скопирована';
+      setTimeout(() => {
+        refBtn.textContent = 'Копировать ссылку';
+      }, 1500);
+    });
+  }
+
+  if (shareBtn) {
+    if (!navigator.share) {
+      shareBtn.style.display = 'none';
+    } else {
+      shareBtn.addEventListener('click', async () => {
+        const value = document.getElementById('ref-link').value;
+        try {
+          await navigator.share({
+            title: 'Реферальная ссылка',
+            text: 'Регистрируйся по моей ссылке',
+            url: value,
+          });
+        } catch (_err) {
+          // Пользователь закрыл окно "Поделиться".
+        }
+      });
+    }
+  }
+</script>
+{% endblock %}

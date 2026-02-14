@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Админ-панель' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="admin-body">
+  <div class="bg-overlay"></div>
+  <main class="container admin-container">
+    <header class="topbar admin-topbar">
+      <h1 class="brand-title">Админ-панель</h1>
+      {% if admin_user %}
+        {% set endpoint = request.endpoint or '' %}
+        <nav class="top-actions menu-shell">
+          <a class="menu-btn {% if endpoint == 'admin_users' %}active{% endif %}" href="{{ url_for('admin_users') }}">Пользователи</a>
+          <a class="menu-btn {% if endpoint == 'admin_videos' %}active{% endif %}" href="{{ url_for('admin_videos') }}">Добавить видео</a>
+          <a class="menu-btn {% if endpoint == 'admin_withdrawals' %}active{% endif %}" href="{{ url_for('admin_withdrawals') }}">Заявки на вывод</a>
+          <a class="menu-btn" href="{{ url_for('admin_logout') }}">Выйти</a>
+        </nav>
+      {% endif %}
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alerts">
+          {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

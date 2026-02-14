@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or 'Видеонаграды' }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="bg-overlay"></div>
+  <main class="container">
+    {% if header_user %}
+      <div class="balance-bar">Счет: {{ '%.2f'|format(header_user['balance']) }} сомони</div>
+    {% endif %}
+
+    <header class="topbar">
+      <h1 class="brand-title">Видеонаграды</h1>
+      {% if header_user %}
+        {% set endpoint = request.endpoint or '' %}
+        <nav class="top-actions menu-shell">
+          <a class="menu-btn {% if endpoint in ['dashboard', 'watch', 'claim'] %}active{% endif %}" href="{{ url_for('dashboard') }}">Главная</a>
+          <a class="menu-btn {% if endpoint == 'referrals' %}active{% endif %}" href="{{ url_for('referrals') }}">Рефералы</a>
+          <a class="menu-btn {% if endpoint == 'withdraw' %}active{% endif %}" href="{{ url_for('withdraw') }}">Вывод средств</a>
+          <a class="menu-btn {% if endpoint == 'profile' %}active{% endif %}" href="{{ url_for('profile') }}">Профиль</a>
+        </nav>
+      {% endif %}
+    </header>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="alerts">
+          {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

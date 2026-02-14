@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>Регистрация</h2>
+  <form method="post">
+    <label>Имя пользователя</label>
+    <input type="text" name="username" required>
+
+    <label>Телефон (пример: +992XXXXXXXXX)</label>
+    <input type="text" name="phone" required>
+
+    <label>Пароль</label>
+    <input type="password" name="password" required>
+
+    <label>Реферальный код (необязательно)</label>
+    <input type="text" name="referral_code" value="{{ referral_code or '' }}" placeholder="Например: AB12CD34">
+
+    <button class="btn" type="submit">Создать аккаунт</button>
+  </form>
+  <p>Уже зарегистрированы? <a href="{{ url_for('login') }}">Войти</a></p>
+</section>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Заявки на вывод</h2>
+  <p><strong>Всего заявок:</strong> {{ total_requests }} | <strong>В обработке:</strong> {{ pending_count }}</p>
+  <form class="admin-search" method="get">
+    <label>Поиск (логин, телефон, реквизиты)</label>
+    <div class="search-row">
+      <input type="text" name="q" value="{{ q }}" placeholder="Например: +992 или Амонатбонк">
+      <select name="status">
+        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Все статусы</option>
+        {% for status in statuses %}
+          <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>
+            {% if status == 'pending' %}В обработке{% elif status == 'approved' %}Одобрено{% else %}Отклонено{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <button class="btn" type="submit">Фильтровать</button>
+      <a class="btn ghost" href="{{ url_for('admin_withdrawals') }}">Сброс</a>
+    </div>
+  </form>
+</section>
+
+<section class="card history-card">
+  <h3>Список заявок</h3>
+  {% if requests_data %}
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Пользователь</th>
+            <th>Телефон</th>
+            <th>Сумма вывода</th>
+            <th>Счет пользователя</th>
+            <th>Реквизиты</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Действие</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in requests_data %}
+            <tr>
+              <td>{{ item['id'] }}</td>
+              <td>{{ item['username'] }}</td>
+              <td>{{ item['phone'] }}</td>
+              <td>{{ '%.2f'|format(item['amount']) }}</td>
+              <td>{{ '%.2f'|format(item['balance']) }}</td>
+              <td>{{ item['payout_details'] }}</td>
+              <td>
+                {% if item['status'] == 'pending' %}
+                  <span class="status-pill pending">В обработке</span>
+                {% elif item['status'] == 'approved' %}
+                  <span class="status-pill approved">Одобрено</span>
+                {% else %}
+                  <span class="status-pill rejected">Отклонено</span>
+                {% endif %}
+              </td>
+              <td>{{ item['created_at'][:19].replace('T', ' ') }}</td>
+              <td>
+                <form method="post" class="status-form">
+                  <input type="hidden" name="request_id" value="{{ item['id'] }}">
+                  <input type="hidden" name="q" value="{{ q }}">
+                  <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                  <select name="status">
+                    {% for status in statuses %}
+                      <option value="{{ status }}" {% if item['status'] == status %}selected{% endif %}>
+                        {% if status == 'pending' %}В обработке{% elif status == 'approved' %}Одобрено{% else %}Отклонено{% endif %}
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn small" type="submit">Сохранить</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Заявки не найдены.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>Вход</h2>
+  <form method="post">
+    <label>Имя пользователя</label>
+    <input type="text" name="username" required>
+
+    <label>Пароль</label>
+    <input type="password" name="password" required>
+
+    <button class="btn" type="submit">Войти</button>
+  </form>
+  <p>Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a></p>
+</section>
+{% endblock %}

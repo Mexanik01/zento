@@ -1,0 +1,116 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Пользователи</h2>
+  <p><strong>Всего пользователей:</strong> {{ total_users }}</p>
+  <form class="admin-search" method="get">
+    <label>Поиск (логин, телефон, реф-код)</label>
+    <div class="search-row">
+      <input type="text" name="q" value="{{ q }}" placeholder="Например: +992 или user123">
+      <button class="btn" type="submit">Искать</button>
+      <a class="btn ghost" href="{{ url_for('admin_users') }}">Сброс</a>
+    </div>
+  </form>
+</section>
+
+<section class="card history-card">
+  <h3>Список пользователей</h3>
+  {% if users %}
+    <div class="table-wrap">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Логин</th>
+            <th>Телефон</th>
+            <th>Баланс</th>
+            <th>Реф-код</th>
+            <th>От реф. ссылки</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Дата</th>
+            <th>Изменить роль</th>
+            <th>Смена пароля</th>
+            <th>Удалить</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in users %}
+            <tr>
+              <td>{{ item['id'] }}</td>
+              <td>{{ item['username'] }}</td>
+              <td>{{ item['phone'] }}</td>
+              <td>{{ '%.2f'|format(item['balance']) }}</td>
+              <td>{{ item['referral_code'] or '-' }}</td>
+              <td>
+                {% if item['inviter_referral_code'] %}
+                  {{ item['inviter_referral_code'] }}{% if item['inviter_username'] %} ({{ item['inviter_username'] }}){% endif %}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                {% if item['role'] == 'admin' %}
+                  Админ
+                {% elif item['role'] == 'subadmin' %}
+                  Подадмин
+                {% else %}
+                  Пользователь
+                {% endif %}
+              </td>
+              <td>{% if item['is_verified'] %}Подтвержден{% else %}Не подтвержден{% endif %}</td>
+              <td>{{ item['created_at'][:19].replace('T', ' ') }}</td>
+              <td>
+                {% if admin_user and admin_user['role'] == 'admin' %}
+                  {% if admin_user['id'] == item['id'] %}
+                    <span class="hint">Текущий админ</span>
+                  {% else %}
+                    <form method="post" class="admin-inline-form">
+                      <input type="hidden" name="action" value="change_role">
+                      <input type="hidden" name="user_id" value="{{ item['id'] }}">
+                      <input type="hidden" name="q" value="{{ q }}">
+                      <select name="new_role">
+                        <option value="admin" {% if item['role'] == 'admin' %}selected{% endif %}>Админ</option>
+                        <option value="subadmin" {% if item['role'] == 'subadmin' %}selected{% endif %}>Подадмин</option>
+                        <option value="user" {% if item['role'] == 'user' %}selected{% endif %}>Пользователь</option>
+                      </select>
+                      <button class="btn small" type="submit">Сохранить</button>
+                    </form>
+                  {% endif %}
+                {% else %}
+                  <span class="hint">Только админ</span>
+                {% endif %}
+              </td>
+              <td>
+                <form method="post" class="admin-inline-form">
+                  <input type="hidden" name="action" value="reset_password">
+                  <input type="hidden" name="user_id" value="{{ item['id'] }}">
+                  <input type="hidden" name="q" value="{{ q }}">
+                  <input type="password" name="new_password" placeholder="Новый пароль" minlength="6" required>
+                  <button class="btn small" type="submit">Сменить</button>
+                </form>
+              </td>
+              <td>
+                {% if admin_user and admin_user['id'] == item['id'] %}
+                  <span class="hint">Недоступно</span>
+                {% elif item['role'] == 'admin' and (admin_user and admin_user['role'] != 'admin') %}
+                  <span class="hint">Недоступно</span>
+                {% else %}
+                  <form method="post" class="admin-inline-form" onsubmit="return confirm('Удалить пользователя?');">
+                    <input type="hidden" name="action" value="delete_user">
+                    <input type="hidden" name="user_id" value="{{ item['id'] }}">
+                    <input type="hidden" name="q" value="{{ q }}">
+                    <button class="btn small danger" type="submit">Удалить</button>
+                  </form>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Пользователи не найдены.</p>
+  {% endif %}
+</section>
+{% endblock %}

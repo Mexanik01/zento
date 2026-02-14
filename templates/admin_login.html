@@ -1,0 +1,17 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>Вход администратора</h2>
+  <form method="post">
+    <label>Логин</label>
+    <input type="text" name="username" required>
+
+    <label>Пароль</label>
+    <input type="password" name="password" required>
+
+    <button class="btn" type="submit">Войти в админ-панель</button>
+  </form>
+  <p class="hint">По умолчанию: admin / admin12345 (смените в переменных окружения).</p>
+  <p><a href="{{ url_for('login') }}">Вернуться к входу пользователя</a></p>
+</section>
+{% endblock %}

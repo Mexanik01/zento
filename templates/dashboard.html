@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card stats">
+  <h2>Здравствуйте, {{ user['username'] }}</h2>
+  <p><strong>Баланс:</strong> {{ '%.2f'|format(user['balance']) }} сомони</p>
+  <p><strong>Осталось видео на сегодня:</strong> {% if active_limit > 0 %}{{ remaining }} / {{ active_limit }}{% else %}Нет доступных видео{% endif %}</p>
+  <p>Награда за одно видео: {{ '%.2f'|format(reward) }} сомони</p>
+  <p><strong>Реферальный бонус:</strong> +{{ '%.2f'|format(user['referral_bonus']) }} сомони к награде за видео</p>
+  <a class="btn ghost" href="{{ url_for('profile') }}">Открыть профиль</a>
+  <a class="btn" href="{{ url_for('withdraw') }}">Вывести средства</a>
+  <a class="btn ghost" href="{{ url_for('referrals') }}">Реферальное меню</a>
+</section>
+
+{% if videos %}
+  <section class="grid">
+    {% for video in videos %}
+      <article class="card video-card">
+        <h3>{{ video['title'] }}</h3>
+        <p><strong>Рекламодатель:</strong> {{ video['advertiser_name'] }}</p>
+        {% if video['id'] in watched_ids %}
+          <p class="done">Засчитано сегодня</p>
+        {% elif remaining == 0 %}
+          <p class="done">Дневной лимит достигнут</p>
+        {% else %}
+          <a class="btn" href="{{ url_for('watch', video_id=video['id']) }}">Смотреть 15 секунд</a>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section class="card history-card">
+    <h3>Сегодня видео не добавлены</h3>
+    <p>Администратор еще не заполнил список видео на текущий день.</p>
+  </section>
+{% endif %}
+
+{% endblock %}
